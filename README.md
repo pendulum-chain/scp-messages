@@ -1,4 +1,4 @@
-# scp-messages
+# SCP Message tool
 
 This tool downloads the SCP messages from the history archive and displays them nicely and makes the use of the SCP more obvious.
 
