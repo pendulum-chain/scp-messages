@@ -1,0 +1,5 @@
+{
+  "startAtLedger": 46689366,
+  "mode": "consensus-check",
+  "archive": "stellar"
+}

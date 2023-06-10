@@ -1,6 +1,21 @@
-# scp-messages
+# Analyze SCP Messages
 
-This tool downloads the SCP messages from the history archive and displays them nicely and makes the use of the SCP more obvious.
+This tool downloads the SCP (Stellar Consensus Protocol) messages from the history archive and
+
+- displays them nicely and makes the use of the SCP more obvious
+- analyzes the SCP messages to check whether consensus has been reached (using the definition of SCP)
+
+## How to use
+
+1. Edit `config.json` to set
+
+- the ledger number to start scanning (scanning happens in reverse order from later ledgers to earlier ledgers)
+- the operation mode: either "consensus-check" to check whether consensus can be determined from the archive messages or "display" to display the archive messages
+- the archive: either "stellar" or "satoshipay" – determines what archvie to use
+
+2. Run `npm start`
+
+## Examples
 
 Two examples outputs:
 

@@ -1,7 +1,14 @@
 import { ScpHistoryEntry } from "ts-stellar-xdr/lib/allTypes";
 import fetch from "node-fetch";
 import { gunzipSync } from "node:zlib";
+import { checkScpHistoryEntryConsensus } from "./checkConsensus";
 import { printScpHistoryEntry } from "./prettyPrints";
+
+const MAINNET_PASSPHRARE = "Public Global Stellar Network ; September 2015";
+const ARCHIVE_URLS = {
+  stellar: "https://history.stellar.org/prd/core-live/core_live_001",
+  satoshipay: "https://stellar-history-us-iowa.satoshipay.io",
+};
 
 export function readArchiveFile(file: ArrayBuffer): ScpHistoryEntry[] {
   const result: ScpHistoryEntry[] = [];
@@ -22,9 +29,11 @@ export function readArchiveFile(file: ArrayBuffer): ScpHistoryEntry[] {
   return result;
 }
 
-export async function downloadArchiveFile(ledger: number): Promise<void> {
-  //const fetch = await import("node-fetch");
-
+export async function scanArchiveFiles(
+  ledger: number,
+  archive: keyof typeof ARCHIVE_URLS,
+  mode: "display" | "consensus-check"
+): Promise<void> {
   const checkPoint = Math.floor(ledger / 64) * 64 - 1;
 
   const checkPoint1 = Math.floor(checkPoint / 256 / 256 / 256)
@@ -34,7 +43,7 @@ export async function downloadArchiveFile(ledger: number): Promise<void> {
   const checkPoint3 = (Math.floor(checkPoint / 256) & 0xff).toString(16).padStart(2, "0");
   const checkPoint4 = (checkPoint & 0xff).toString(16).padStart(2, "0");
 
-  const url = `https://history.stellar.org/prd/core-live/core_live_001/scp/${checkPoint1}/${checkPoint2}/${checkPoint3}/scp-${checkPoint1}${checkPoint2}${checkPoint3}${checkPoint4}.xdr.gz`;
+  const url = `${ARCHIVE_URLS[archive]}/scp/${checkPoint1}/${checkPoint2}/${checkPoint3}/scp-${checkPoint1}${checkPoint2}${checkPoint3}${checkPoint4}.xdr.gz`;
   console.log(url);
   try {
     const result = await fetch(url);
@@ -43,8 +52,27 @@ export async function downloadArchiveFile(ledger: number): Promise<void> {
     const realResult = gunzipSync(fileContent);
 
     const historyEntries = readArchiveFile(new Uint8Array(realResult).buffer);
-    historyEntries.forEach(printScpHistoryEntry);
-  } catch {}
+    historyEntries.reverse();
+    let sequenceNumber = checkPoint;
+    for (const entry of historyEntries) {
+      switch (mode) {
+        case "display":
+          printScpHistoryEntry(entry);
+          break;
+
+        case "consensus-check":
+          const result = await checkScpHistoryEntryConsensus(entry, sequenceNumber--, MAINNET_PASSPHRARE);
+          if (!result) {
+            console.log("\n\n");
+            printScpHistoryEntry(entry);
+            process.exit();
+          }
+          break;
+      }
+    }
+  } catch (error) {
+    console.log("An error ocurred", error);
+  }
 
   console.log("Archive file download done");
 }

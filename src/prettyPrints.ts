@@ -207,6 +207,10 @@ function valueToString(value: Value, printContext: PrintContext): string {
   }
 
   if (printContext.values[valueString] === undefined) {
+    if (Object.keys(printContext.values).length > 0) {
+      throw new Error("More than one value in one ledger");
+    }
+
     printContext.values[valueString] = `value${Object.keys(printContext.values).length + 1}`;
   }
 
