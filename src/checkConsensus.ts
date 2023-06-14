@@ -163,15 +163,19 @@ function checkConsensusMain(ledgerMessages: LedgerScpMessages, quorumSetLookup: 
   const minBallotNumber = externalizeMessage.statement.pledges.value.commit.counter;
   let maxBallotNumber = minBallotNumber;
 
+  let uniquenH: number | undefined = undefined;
   orderedLedgerMessages.forEach(({ statement }) => {
     const { pledges } = statement;
     let value: ArrayBuffer | undefined = undefined;
+    let nH: number | undefined = undefined;
     switch (pledges.type) {
       case "scpStExternalize":
         value = pledges.value.commit.value;
+        nH = pledges.value.nH;
         break;
       case "scpStConfirm":
         value = pledges.value.ballot.value;
+        nH = pledges.value.nH;
         break;
     }
 
@@ -179,6 +183,14 @@ function checkConsensusMain(ledgerMessages: LedgerScpMessages, quorumSetLookup: 
       throw new Error(
         `There are SCP messages for conflicting values: ${new Uint8Array(value)}, ${new Uint8Array(externalizedValue)}`
       );
+    }
+
+    if (nH !== undefined) {
+      if (uniquenH === undefined) {
+        uniquenH = nH;
+      } else if (uniquenH !== nH) {
+        throw new Error(`There are SCP messages with different nH values: ${nH}, ${uniquenH}`);
+      }
     }
   });
 
