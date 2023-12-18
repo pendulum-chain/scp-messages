@@ -1,5 +1,5 @@
 {
-  "startAtLedger": 46647616,
-  "mode": "display",
-  "archive": "satoshipay"
+  "startAtLedger":49514999 ,
+  "mode": "consensus-check",
+  "archive": "stellar"
 }

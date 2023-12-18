@@ -95,8 +95,6 @@ export function printScpHistoryEntry(scpHistoryEntry: ScpHistoryEntry) {
 }
 
 function printScpHistoryEntryV0(scpHistoryEntryV0: ScpHistoryEntryV0) {
-  // if (scpHistoryEntryV0.ledgerMessages.ledgerSeq != 46539113) return
-
   console.log(`\nLEDGER ${scpHistoryEntryV0.ledgerMessages.ledgerSeq}`);
   console.log("ScpQuorumSets");
   scpHistoryEntryV0.quorumSets.forEach((quorumSet) => printScpQuorumSet(quorumSet, "  "));
@@ -136,7 +134,7 @@ function printPublicKey(publicKey: PublicKey) {
   return KNOWN_VALIDATORS[publicKeyString];
 }
 
-function printLedgerScpMessages(ledgerScpMessages: LedgerScpMessages) {
+export function printLedgerScpMessages(ledgerScpMessages: LedgerScpMessages) {
   const printContext: PrintContext = {
     quorumHashes: {},
     values: {},

@@ -12,7 +12,7 @@ import {keypair} from "ts-stellar-sdk";
 import {orderMessages} from "./orderMessages";
 import {createHash} from "node:crypto";
 import {Unsigned} from "ts-stellar-xdr/lib/utils/int64";
-import {KNOWN_VALIDATORS_ORG} from "./prettyPrints";
+import {KNOWN_VALIDATORS_ORG, printLedgerScpMessages, printScpHistoryEntry} from "./prettyPrints";
 
 const BINARY_SCP_ENVELOPE_TYPE = EnvelopeType.toXdr("envelopeTypeScp");
 
@@ -191,7 +191,7 @@ function checkConsensusMain(ledgerMessages: LedgerScpMessages, quorumSetLookup: 
             if (uniquenH === undefined) {
                 uniquenH = nH;
             } else if (uniquenH !== nH) {
-                throw new Error(`There are SCP messages with different nH values: ${nH}, ${uniquenH}`);
+                // throw new Error(`There are SCP messages with different nH values: ${nH}, ${uniquenH}`);
             }
         }
     });
@@ -228,6 +228,8 @@ function checkConsensusMain(ledgerMessages: LedgerScpMessages, quorumSetLookup: 
         // if (containsQuorum(confirmingNodes, quorumSetsByNode)) {
         if (palletConsensusCheck(confirmingNodes)) {
             return true;
+        } else {
+            printLedgerScpMessages(ledgerMessages)
         }
     }
 
@@ -259,6 +261,10 @@ function palletConsensusCheck(nodeSet: Set<string>): boolean {
                 }
             }
         }
+         // Reject if node is not in KNOWN_VALIDATORS_ORG
+        if (!Object.keys(KNOWN_VALIDATORS_ORG).includes(node)){
+            throw new Error(`Node ${node} is not in KNOWN_VALIDATORS_ORG`)
+        }
     });
 
     // Check if at least 2/3 of organizations are targeted
@@ -274,13 +280,16 @@ function palletConsensusCheck(nodeSet: Set<string>): boolean {
         if (count * 2 > total) {
             counter += 1;
         }
+        else {
+            console.log("org", org, "count", count, "total", total)
+        }
     }
 
+    console.log("counter", counter, "targetedOrganizationsCount", targetedOrganizationsCount)
     if (counter < 5) {
         return false
     }
 
-    console.log("counter", counter, "targetedOrganizationsCount", targetedOrganizationsCount)
 
     return true
 }
