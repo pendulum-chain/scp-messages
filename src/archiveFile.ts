@@ -51,9 +51,11 @@ export async function scanArchiveFiles(
 
     const realResult = gunzipSync(fileContent);
 
+    console.log("Fetching archive file done")
     const historyEntries = readArchiveFile(new Uint8Array(realResult).buffer);
     historyEntries.reverse();
     let sequenceNumber = checkPoint;
+    console.log("History entries read");
     for (const entry of historyEntries) {
       switch (mode) {
         case "display":
