@@ -12,11 +12,8 @@ import { keypair } from "ts-stellar-sdk";
 import { orderMessages } from "./orderMessages";
 import { createHash } from "node:crypto";
 import { Unsigned } from "ts-stellar-xdr/lib/utils/int64";
-import {
-  KNOWN_VALIDATORS_ORG,
-  printLedgerScpMessages,
-  printScpHistoryEntry,
-} from "./prettyPrints";
+import { KNOWN_VALIDATORS_ORG, printLedgerScpMessages } from "./prettyPrints";
+import { consensus } from "../config.json";
 
 const BINARY_SCP_ENVELOPE_TYPE = EnvelopeType.toXdr("envelopeTypeScp");
 
@@ -274,14 +271,15 @@ function checkConsensusMain(
       }
     });
 
-    // if (containsQuorum(confirmingNodes, quorumSetsByNode)) {
-    if (palletConsensusCheck(confirmingNodes)) {
-      return true;
+    if (consensus === "pallet") {
+      if (palletConsensusCheck(confirmingNodes)) return true;
     } else {
-      printLedgerScpMessages(ledgerMessages);
+      if (containsQuorum(confirmingNodes, quorumSetsByNode)) return true;
     }
   }
 
+  // Couldn't find consensus for this ballot number so we print the messages
+  printLedgerScpMessages(ledgerMessages);
   return false;
 }
 
@@ -327,22 +325,14 @@ function palletConsensusCheck(nodeSet: Set<string>): boolean {
     const total = totalOrganizations[org] || 0;
     if (count * 2 > total) {
       counter += 1;
-    } else {
-      console.log("org", org, "count", count, "total", total);
     }
   }
 
-  console.log(
-    "counter",
-    counter,
-    "targetedOrganizationsCount",
-    targetedOrganizationsCount
-  );
-  if (counter < 5) {
-    return false;
-  }
+  // Calculate 2/3 of the total organizations rounding up to a whole number
+  let threshold = Math.ceil(Object.keys(totalOrganizations).length * (2 / 3));
 
-  return true;
+  // Check if the amount of 'valid' organizations is greater than or equal to the threshold
+  return counter >= threshold;
 }
 
 // checks whether the nodeSet contains a quorum

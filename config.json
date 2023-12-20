@@ -1,5 +1,6 @@
 {
   "startAtLedger": 48508224,
   "mode": "consensus-check",
-  "archive": "satoshipay"
+  "archive": "satoshipay",
+  "consensus": "pallet"
 }

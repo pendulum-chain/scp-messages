@@ -10,8 +10,11 @@ This tool downloads the SCP (Stellar Consensus Protocol) messages from the histo
 1. Edit `config.json` to set
 
 - the ledger number to start scanning (scanning happens in reverse order from later ledgers to earlier ledgers)
-- the operation mode: either "consensus-check" to check whether consensus can be determined from the archive messages or "display" to display the archive messages
-- the archive: either "stellar" or "satoshipay" – determines what archvie to use
+- the operation mode: either "consensus-check" to check whether consensus can be determined from the archive messages
+  or "display" to display the archive messages
+- the archive: either "stellar" or "satoshipay" – determines what archive to use
+- the consensus check: either "pallet" or "dynamic" – determines whether the consensus is determined using a logic
+  similar to the Stellar oracle pallet or derived with the dynamic quorum set definition
 
 2. Run `npm start`
 
