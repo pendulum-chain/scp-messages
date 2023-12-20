@@ -17,6 +17,7 @@
     "ts-stellar-xdr": "^0.6.1"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.4"
+    "@types/node-fetch": "^2.6.4",
+    "prettier": "^3.1.1"
   }
 }
