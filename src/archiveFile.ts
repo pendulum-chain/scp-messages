@@ -17,7 +17,10 @@ export function readArchiveFile(file: ArrayBuffer): ScpHistoryEntry[] {
   let i = 0;
   while (i < file.byteLength) {
     const length =
-      uint8Array[i + 3] + uint8Array[i + 2] * 256 + uint8Array[i + 1] * 65536 + (uint8Array[i] & 0x7f) * 256 * 65536;
+      uint8Array[i + 3] +
+      uint8Array[i + 2] * 256 +
+      uint8Array[i + 1] * 65536 +
+      (uint8Array[i] & 0x7f) * 256 * 65536;
     i += 4;
 
     const slice = file.slice(i, i + length);
@@ -39,8 +42,12 @@ export async function scanArchiveFiles(
   const checkPoint1 = Math.floor(checkPoint / 256 / 256 / 256)
     .toString(16)
     .padStart(2, "0");
-  const checkPoint2 = (Math.floor(checkPoint / 256 / 256) & 0xff).toString(16).padStart(2, "0");
-  const checkPoint3 = (Math.floor(checkPoint / 256) & 0xff).toString(16).padStart(2, "0");
+  const checkPoint2 = (Math.floor(checkPoint / 256 / 256) & 0xff)
+    .toString(16)
+    .padStart(2, "0");
+  const checkPoint3 = (Math.floor(checkPoint / 256) & 0xff)
+    .toString(16)
+    .padStart(2, "0");
   const checkPoint4 = (checkPoint & 0xff).toString(16).padStart(2, "0");
 
   const url = `${ARCHIVE_URLS[archive]}/scp/${checkPoint1}/${checkPoint2}/${checkPoint3}/scp-${checkPoint1}${checkPoint2}${checkPoint3}${checkPoint4}.xdr.gz`;
@@ -51,7 +58,7 @@ export async function scanArchiveFiles(
 
     const realResult = gunzipSync(fileContent);
 
-    console.log("Fetching archive file done")
+    console.log("Fetching archive file done");
     const historyEntries = readArchiveFile(new Uint8Array(realResult).buffer);
     historyEntries.reverse();
     let sequenceNumber = checkPoint;
@@ -63,7 +70,11 @@ export async function scanArchiveFiles(
           break;
 
         case "consensus-check":
-          const result = await checkScpHistoryEntryConsensus(entry, sequenceNumber--, MAINNET_PASSPHRARE);
+          const result = await checkScpHistoryEntryConsensus(
+            entry,
+            sequenceNumber--,
+            MAINNET_PASSPHRARE
+          );
           if (!result) {
             console.log("\n\n");
             printScpHistoryEntry(entry);
