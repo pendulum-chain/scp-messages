@@ -60,12 +60,9 @@ const KNOWN_VALIDATORS: Record<string, string> = {
   GADLA6BJK6VK33EM2IDQM37L5KGVCY5MSHSHVJA4SCNGNUIEOTCR6J5T: "Coinqvest2",
   GAZ437J46SCFPZEDLVGDMKZPLFO77XJ4QVAURSJVRZK2T5S7XUFHXI2Z: "Coinqvest3",
 
-  GARYGQ5F2IJEBCZJCBNPWNWVDOFK7IBOHLJKKSG2TMHDQKEEC6P4PE4V:
-    "FranklinTempleton1",
-  GCMSM2VFZGRPTZKPH5OABHGH4F3AVS6XTNJXDGCZ3MKCOSUBH3FL6DOB:
-    "FranklinTempleton2",
-  GA7DV63PBUUWNUFAF4GAZVXU2OZMYRATDLKTC7VTCG7AU4XUPN5VRX4A:
-    "FranklinTempleton3",
+  GARYGQ5F2IJEBCZJCBNPWNWVDOFK7IBOHLJKKSG2TMHDQKEEC6P4PE4V: "FranklinTempleton1",
+  GCMSM2VFZGRPTZKPH5OABHGH4F3AVS6XTNJXDGCZ3MKCOSUBH3FL6DOB: "FranklinTempleton2",
+  GA7DV63PBUUWNUFAF4GAZVXU2OZMYRATDLKTC7VTCG7AU4XUPN5VRX4A: "FranklinTempleton3",
 
   GCFONE23AB7Y6C5YZOMKUKGETPIAJA4QOYLS5VNS4JHBGKRZCPYHDLW7: "Lobster1",
   GCB2VSADESRV2DDTIVTFLBDI562K6KE3KMKILBHUHUWFXCUBHGQDI7VL: "Lobster2",
@@ -93,27 +90,19 @@ interface PrintContext {
 }
 
 export function printScpHistoryEntry(scpHistoryEntry: ScpHistoryEntry) {
-  if (scpHistoryEntry.type !== 0)
-    throw new Error(`Unknown ScpHistoryEntry type ${scpHistoryEntry.type}`);
+  if (scpHistoryEntry.type !== 0) throw new Error(`Unknown ScpHistoryEntry type ${scpHistoryEntry.type}`);
   printScpHistoryEntryV0(scpHistoryEntry.value);
 }
 
 function printScpHistoryEntryV0(scpHistoryEntryV0: ScpHistoryEntryV0) {
   console.log(`\nLEDGER ${scpHistoryEntryV0.ledgerMessages.ledgerSeq}`);
   console.log("ScpQuorumSets");
-  scpHistoryEntryV0.quorumSets.forEach((quorumSet) =>
-    printScpQuorumSet(quorumSet, "  ")
-  );
-  console.log(
-    `LedgerScpMessages (${scpHistoryEntryV0.ledgerMessages.messages.length})`
-  );
+  scpHistoryEntryV0.quorumSets.forEach((quorumSet) => printScpQuorumSet(quorumSet, "  "));
+  console.log(`LedgerScpMessages (${scpHistoryEntryV0.ledgerMessages.messages.length})`);
   printLedgerScpMessages(scpHistoryEntryV0.ledgerMessages);
 }
 
-function printScpQuorumSet(
-  scpQuorumSet: ScpQuorumSet,
-  indentation: string = ""
-) {
+function printScpQuorumSet(scpQuorumSet: ScpQuorumSet, indentation: string = "") {
   if (indentation === "  ") {
     console.log("  Quorum Set");
   }
@@ -123,9 +112,7 @@ function printScpQuorumSet(
   console.log(`${indentation}threshold: ${scpQuorumSet.threshold}`);
   if (scpQuorumSet.validators.length > 0) {
     let validators = `${indentation}validators: `;
-    scpQuorumSet.validators.forEach(
-      (validator) => (validators += printPublicKey(validator) + " ")
-    );
+    scpQuorumSet.validators.forEach((validator) => (validators += printPublicKey(validator) + " "));
     console.log(validators);
   }
 
@@ -154,30 +141,19 @@ export function printLedgerScpMessages(ledgerScpMessages: LedgerScpMessages) {
     sender: "",
   };
 
-  orderMessages(ledgerScpMessages).forEach((message) =>
-    printScpEnvelope(message, printContext)
-  );
+  orderMessages(ledgerScpMessages).forEach((message) => printScpEnvelope(message, printContext));
 }
 
-function printScpEnvelope(
-  scpEnvelope: ScpEnvelope,
-  printContext: PrintContext
-) {
+function printScpEnvelope(scpEnvelope: ScpEnvelope, printContext: PrintContext) {
   printScpStatement(scpEnvelope.statement, printContext);
 }
 
-function printScpStatement(
-  scpStatement: ScpStatement,
-  printContext: PrintContext
-) {
+function printScpStatement(scpStatement: ScpStatement, printContext: PrintContext) {
   printContext.sender = printPublicKey(scpStatement.nodeId);
   printScpStatementPledges(scpStatement.pledges, printContext);
 }
 
-function printScpStatementPledges(
-  scpStatementPledges: ScpStatementPledges,
-  printContext: PrintContext
-) {
+function printScpStatementPledges(scpStatementPledges: ScpStatementPledges, printContext: PrintContext) {
   switch (scpStatementPledges.type) {
     case "scpStPrepare":
       printScpStatementPrepare(scpStatementPledges.value, printContext);
@@ -194,72 +170,46 @@ function printScpStatementPledges(
   }
 }
 
-function printScpStatementPrepare(
-  scpStatementPrepare: ScpStatementPrepare,
-  printContext: PrintContext
-) {
+function printScpStatementPrepare(scpStatementPrepare: ScpStatementPrepare, printContext: PrintContext) {
   console.log(`  Prepare message from ${printContext.sender}`);
   printHash(scpStatementPrepare.quorumSetHash, "    ", printContext);
 
   console.log(
-    `    b = ${printScpBallot(
-      scpStatementPrepare.ballot,
-      printContext
-    )}, p = ${printScpBallot(
+    `    b = ${printScpBallot(scpStatementPrepare.ballot, printContext)}, p = ${printScpBallot(
       scpStatementPrepare.prepared,
       printContext
-    )}, p' = ${printScpBallot(
-      scpStatementPrepare.preparedPrime,
-      printContext
-    )}, c.n = ${scpStatementPrepare.nC}, h.n = ${scpStatementPrepare.nH}`
+    )}, p' = ${printScpBallot(scpStatementPrepare.preparedPrime, printContext)}, c.n = ${
+      scpStatementPrepare.nC
+    }, h.n = ${scpStatementPrepare.nH}`
   );
 }
 
-function printScpStatementConfirm(
-  scpStatementConfirm: ScpStatementConfirm,
-  printContext: PrintContext
-) {
+function printScpStatementConfirm(scpStatementConfirm: ScpStatementConfirm, printContext: PrintContext) {
   console.log(`  Confirm message from ${printContext.sender}`);
   printHash(scpStatementConfirm.quorumSetHash, "    ", printContext);
 
   console.log(
-    `    b = ${printScpBallot(
-      scpStatementConfirm.ballot,
-      printContext
-    )}, p.n = ${scpStatementConfirm.nPrepared}, c.n = ${
-      scpStatementConfirm.nCommit
-    }, h.n = ${scpStatementConfirm.nH}`
+    `    b = ${printScpBallot(scpStatementConfirm.ballot, printContext)}, p.n = ${
+      scpStatementConfirm.nPrepared
+    }, c.n = ${scpStatementConfirm.nCommit}, h.n = ${scpStatementConfirm.nH}`
   );
 }
 
-function printScpStatementExternalize(
-  scpStatementExternalize: ScpStatementExternalize,
-  printContext: PrintContext
-) {
+function printScpStatementExternalize(scpStatementExternalize: ScpStatementExternalize, printContext: PrintContext) {
   console.log(`  Externalize message from ${printContext.sender}`);
   printHash(scpStatementExternalize.commitQuorumSetHash, "    ", printContext);
 
   console.log(
-    `    c = ${printScpBallot(
-      scpStatementExternalize.commit,
-      printContext
-    )}, h.n = ${scpStatementExternalize.nH}`
+    `    c = ${printScpBallot(scpStatementExternalize.commit, printContext)}, h.n = ${scpStatementExternalize.nH}`
   );
 }
 
-function printScpNomination(
-  scpStatementNominate: ScpNomination,
-  printContext: PrintContext
-) {
+function printScpNomination(scpStatementNominate: ScpNomination, printContext: PrintContext) {
   console.log(`  Nominate message from ${printContext.sender}`);
   printHash(scpStatementNominate.quorumSetHash, "    ", printContext);
 }
 
-function printHash(
-  hash: Hash,
-  indentation: string,
-  printContext: PrintContext
-) {
+function printHash(hash: Hash, indentation: string, printContext: PrintContext) {
   const uint8Array = new Uint8Array(hash);
   let hashString = "";
   for (let i = 0; i < uint8Array.byteLength; i++) {
@@ -267,28 +217,18 @@ function printHash(
   }
 
   if (printContext.quorumHashes[hashString] === undefined) {
-    printContext.quorumHashes[hashString] = `quorumHash${
-      Object.keys(printContext.quorumHashes).length + 1
-    }`;
+    printContext.quorumHashes[hashString] = `quorumHash${Object.keys(printContext.quorumHashes).length + 1}`;
   }
 
-  console.log(
-    `${indentation}quorumSet: ${printContext.quorumHashes[hashString]}`
-  );
+  console.log(`${indentation}quorumSet: ${printContext.quorumHashes[hashString]}`);
 }
 
-function printScpBallot(
-  scpBallot: ScpBallot | undefined,
-  printContext: PrintContext
-) {
+function printScpBallot(scpBallot: ScpBallot | undefined, printContext: PrintContext) {
   if (scpBallot === undefined) {
     return `(0, \u22A5)`;
   }
 
-  return `(${scpBallot.counter}, ${valueToString(
-    scpBallot.value,
-    printContext
-  )})`;
+  return `(${scpBallot.counter}, ${valueToString(scpBallot.value, printContext)})`;
 }
 
 function valueToString(value: Value, printContext: PrintContext): string {
@@ -303,9 +243,7 @@ function valueToString(value: Value, printContext: PrintContext): string {
       throw new Error("More than one value in one ledger");
     }
 
-    printContext.values[valueString] = `value${
-      Object.keys(printContext.values).length + 1
-    }`;
+    printContext.values[valueString] = `value${Object.keys(printContext.values).length + 1}`;
   }
 
   return printContext.values[valueString];

@@ -8,9 +8,7 @@ import {
   Value,
 } from "ts-stellar-xdr/lib/allTypes";
 
-export function orderMessages(
-  ledgerScpMessages: LedgerScpMessages
-): ScpEnvelope[] {
+export function orderMessages(ledgerScpMessages: LedgerScpMessages): ScpEnvelope[] {
   const orderedLedgerScpMessages = [...ledgerScpMessages.messages];
   orderedLedgerScpMessages.sort(compareScpEnvelopes);
 
@@ -21,13 +19,10 @@ function compareScpEnvelopes(
   { statement: { pledges: a } }: ScpEnvelope,
   { statement: { pledges: b } }: ScpEnvelope
 ): number {
-  if (a.type === "scpStNominate" || b.type === "scpStNominate")
-    throw new Error("Can't order nominate messages");
+  if (a.type === "scpStNominate" || b.type === "scpStNominate") throw new Error("Can't order nominate messages");
 
-  if (a.type === "scpStPrepare" && b.type === "scpStPrepare")
-    return compareScpStatementPrepares(a.value, b.value);
-  if (a.type === "scpStConfirm" && b.type === "scpStConfirm")
-    return compareScpStatementConfirms(a.value, b.value);
+  if (a.type === "scpStPrepare" && b.type === "scpStPrepare") return compareScpStatementPrepares(a.value, b.value);
+  if (a.type === "scpStConfirm" && b.type === "scpStConfirm") return compareScpStatementConfirms(a.value, b.value);
   if (a.type === "scpStExternalize" && b.type === "scpStExternalize")
     return compareScpStatementExternalizes(a.value, b.value);
 
@@ -37,10 +32,7 @@ function compareScpEnvelopes(
   return 1;
 }
 
-function compareScpStatementPrepares(
-  a: ScpStatementPrepare,
-  b: ScpStatementPrepare
-): number {
+function compareScpStatementPrepares(a: ScpStatementPrepare, b: ScpStatementPrepare): number {
   let ballotDifference = compareScpBallot(a.ballot, b.ballot);
   if (ballotDifference !== 0) return ballotDifference;
 
@@ -56,10 +48,7 @@ function compareScpStatementPrepares(
   return compareScpBallot(aH, bH);
 }
 
-function compareScpStatementConfirms(
-  a: ScpStatementConfirm,
-  b: ScpStatementConfirm
-): number {
+function compareScpStatementConfirms(a: ScpStatementConfirm, b: ScpStatementConfirm): number {
   let ballotDifference = compareScpBallot(a.ballot, b.ballot);
   if (ballotDifference !== 0) return ballotDifference;
 
@@ -75,17 +64,11 @@ function compareScpStatementConfirms(
   return compareScpBallot(aH, bH);
 }
 
-function compareScpStatementExternalizes(
-  a: ScpStatementExternalize,
-  b: ScpStatementExternalize
-): number {
+function compareScpStatementExternalizes(a: ScpStatementExternalize, b: ScpStatementExternalize): number {
   return 0;
 }
 
-function compareScpBallot(
-  a: ScpBallot | undefined,
-  b: ScpBallot | undefined
-): number {
+function compareScpBallot(a: ScpBallot | undefined, b: ScpBallot | undefined): number {
   if (a === undefined || b === undefined) {
     if (b !== undefined) {
       return -1;
