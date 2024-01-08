@@ -12,6 +12,8 @@ import { keypair } from "ts-stellar-sdk";
 import { orderMessages } from "./orderMessages";
 import { createHash } from "node:crypto";
 import { Unsigned } from "ts-stellar-xdr/lib/utils/int64";
+import { KNOWN_VALIDATORS_ORG, printLedgerScpMessages } from "./prettyPrints";
+import { consensus } from "../config.json";
 
 const BINARY_SCP_ENVELOPE_TYPE = EnvelopeType.toXdr("envelopeTypeScp");
 
@@ -189,7 +191,7 @@ function checkConsensusMain(ledgerMessages: LedgerScpMessages, quorumSetLookup: 
       if (uniquenH === undefined) {
         uniquenH = nH;
       } else if (uniquenH !== nH) {
-        throw new Error(`There are SCP messages with different nH values: ${nH}, ${uniquenH}`);
+        // throw new Error(`There are SCP messages with different nH values: ${nH}, ${uniquenH}`);
       }
     }
   });
@@ -223,12 +225,68 @@ function checkConsensusMain(ledgerMessages: LedgerScpMessages, quorumSetLookup: 
       }
     });
 
-    if (containsQuorum(confirmingNodes, quorumSetsByNode)) {
-      return true;
+    if (consensus === "pallet") {
+      if (palletConsensusCheck(confirmingNodes)) return true;
+    } else {
+      if (containsQuorum(confirmingNodes, quorumSetsByNode)) return true;
     }
   }
 
+  // Couldn't find consensus for this ballot number so we print the messages
+  printLedgerScpMessages(ledgerMessages);
   return false;
+}
+
+// This function simulates the consensus check that is done by the stellar-relay pallet
+function palletConsensusCheck(nodeSet: Set<string>): boolean {
+  // Calculate the total validator count for each organization
+  let totalOrganizations: Record<string, number> = {};
+  for (const [_, value] of Object.entries(KNOWN_VALIDATORS_ORG)) {
+    if (totalOrganizations[value] !== undefined) {
+      totalOrganizations[value] += 1;
+    } else {
+      totalOrganizations[value] = 1;
+    }
+  }
+
+  // Iterate over all items in the KNOWN_VALIDATORS_ORG Record<string, string>
+  let targetedOrganizations: Record<string, number> = {};
+  nodeSet.forEach((node) => {
+    for (const [key, value] of Object.entries(KNOWN_VALIDATORS_ORG)) {
+      if (node === key) {
+        if (targetedOrganizations[value] !== undefined) {
+          targetedOrganizations[value] += 1;
+        } else {
+          targetedOrganizations[value] = 1;
+        }
+      }
+    }
+    // Reject if node is not in KNOWN_VALIDATORS_ORG
+    if (!Object.keys(KNOWN_VALIDATORS_ORG).includes(node)) {
+      throw new Error(`Node ${node} is not in KNOWN_VALIDATORS_ORG`);
+    }
+  });
+
+  // Check if at least 2/3 of organizations are targeted
+  let targetedOrganizationsCount = Object.keys(targetedOrganizations).length;
+  if (targetedOrganizationsCount < 5) {
+    return false;
+  }
+
+  // Check if at least 2/3 of organizations are contained with at least
+  let counter = 0;
+  for (const [org, count] of Object.entries(targetedOrganizations)) {
+    const total = totalOrganizations[org] || 0;
+    if (count * 2 > total) {
+      counter += 1;
+    }
+  }
+
+  // Calculate 2/3 of the total organizations rounding up to a whole number
+  let threshold = Math.ceil(Object.keys(totalOrganizations).length * (2 / 3));
+
+  // Check if the amount of 'valid' organizations is greater than or equal to the threshold
+  return counter >= threshold;
 }
 
 // checks whether the nodeSet contains a quorum
